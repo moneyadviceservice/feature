@@ -15,7 +15,7 @@ module Feature
   #   end
   def self.run_with_activated(feature)
     old_features = @active_features.dup
-    @active_features.push(feature).uniq!
+    @active_features.push(*feature).uniq!
     yield
   ensure
     @active_features = old_features
