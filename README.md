@@ -1,9 +1,4 @@
-[![Gem Version](https://badge.fury.io/rb/feature.svg)](https://rubygems.org/gems/feature)
-[![Travis-CI Build Status](https://travis-ci.org/mgsnova/feature.svg)](https://travis-ci.org/mgsnova/feature)
-[![Coverage Status](http://img.shields.io/coveralls/mgsnova/feature/master.svg)](https://coveralls.io/r/mgsnova/feature)
-[![Code Climate](https://codeclimate.com/github/mgsnova/feature.svg)](https://codeclimate.com/github/mgsnova/feature)
-[![Inline docs](http://inch-ci.org/github/mgsnova/feature.svg)](http://inch-ci.org/github/mgsnova/feature)
-[![Dependency Status](https://gemnasium.com/mgsnova/feature.svg)](https://gemnasium.com/mgsnova/feature)
+[![Travis-CI Build Status](https://travis-ci.org/mgsnova/feature.png)](https://travis-ci.org/moneyadviceservice/feature)
 
 # Feature
 
