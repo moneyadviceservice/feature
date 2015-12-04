@@ -1,16 +1,16 @@
+sudo: false
 language: ruby
 rvm:
-  - ruby-head
+  - 2.0
   - 2.1
-  - 2.0.0
-  - 1.9.3
+  - 2.2
+  - ruby-head
   - jruby-head
-  - jruby
   - rbx-2
 matrix:
   allow_failures:
-    - rvm: rbx-2
     - rvm: jruby-head
+    - rvm: rbx-2
 before_install: gem install bundler
 script:
   - bundle exec rake

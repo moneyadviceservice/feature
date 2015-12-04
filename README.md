@@ -11,11 +11,13 @@ Feature is a battle-tested [feature toggle](http://martinfowler.com/bliki/Featur
 
 The feature toggle functionality has to be configured by feature repositories. A feature repository simply provides lists of active features (symbols!). Unknown features are assumed inactive.
 
-With this approach Feature is higly configurable and not bound to a specific kind of configuration.
+With this approach Feature is highly configurable and not bound to a specific kind of configuration.
 
-**NOTE:** Ruby 1.8 is only supported until version 0.7.0. Later Versions require at least Ruby 1.9.
+**NOTE:** Ruby 1.9 is supported explicitly only until version 1.2.0. Later version may require 2+.
 
-**NOTE:** Using feature with ActiveRecord and Rails 3 MAY work. Use version 1.1.0 if you need support for Rails 3.
+**NOTE:** Ruby 1.8 is only supported until version 0.7.0. Later Versions require Ruby 1.9+.
+
+**NOTE:** Using feature with ActiveRecord and Rails 3 MAY work. Version 1.1.0 supports Rails 3.
 
 ## Installation
 
@@ -24,10 +26,14 @@ With this approach Feature is higly configurable and not bound to a specific kin
 ## How to use
 
 * Setup Feature
-    * Create a repository (see examples below)
+    * Create a repository (for more infos about configuration backends, see section below)
+
+            require 'feature'
+            repo = Feature::Repository::SimpleRepository.new
+
     * Set repository to Feature
 
-            Feature.set_repository(your_repository)
+            Feature.set_repository(repo)
 
 * Use Feature in your production code
 
@@ -43,19 +49,21 @@ With this approach Feature is higly configurable and not bound to a specific kin
           # code
         end
 
-        Feature.switch(:feature_name, value_true, value_false) # => returns value_true if :feature_name is active, otherwise value_false
+        # this returns value_true if :feature_name is active, otherwise value_false
+        Feature.switch(:feature_name, value_true, value_false) 
 
-        # May also take Procs (here in Ruby 1.9 lambda syntax), returns code evaluation result.
+        # switch may also take Procs that will be evaluated and it's result returned.
         Feature.switch(:feature_name, -> { code... }, -> { code... })
 
 * Use Feature in your test code (for reliable testing of feature depending code)
 
         require 'feature/testing'
 
-        Feature.run_with_activated(:feature, :another_feature) do
+        Feature.run_with_activated(:feature) do
           # your test code
         end
 
+        # you also can give a list of features
         Feature.run_with_deactivated(:feature, :another_feature) do
           # your test code
         end
@@ -66,8 +74,8 @@ With this approach Feature is higly configurable and not bound to a specific kin
       underlying repository the first time you try to check whether a
       feature is set or not. 
 
-    * Subsequent toggle-status checks will access the cached, in-memory
-      representation of the toggle status, so changes to toggles in the 
+    * Subsequent calls to Feature will access the cached in-memory
+      representation of the list of features. So changes to toggles in the 
       underlying repository would not be reflected in the application
       until you restart the application or manally call 
 
@@ -79,9 +87,12 @@ With this approach Feature is higly configurable and not bound to a specific kin
 
             Feature.set_repository(your_repository, true) 
 
-## Examples
+## How to setup different backends
 
-### Vanilla Ruby using SimpleRepository
+### SimpleRepository (in-memory)
+
+        # File: Gemfile
+        gem 'feature'
 
         # setup code
         require 'feature'
@@ -91,15 +102,7 @@ With this approach Feature is higly configurable and not bound to a specific kin
 
         Feature.set_repository repo
 
-        # production code
-        Feature.active?(:be_nice)
-        # => true
-
-        Feature.with(:be_nice) do
-          puts "you can read this"
-        end
-
-### Ruby or Rails using RedisRepository
+### RedisRepository (features configured in redis server)
 
         # See here to learn how to configure redis: https://github.com/redis/redis-rb
 
@@ -110,25 +113,15 @@ With this approach Feature is higly configurable and not bound to a specific kin
         # setup code (or Rails initializer: config/initializers/feature.rb)
         require 'feature'
 
+        # "feature_toggles" will be the key name in redis
         repo = Feature::Repository::RedisRepository.new("feature_toggles")
         Feature.set_repository repo
-
-        # production code
-        Feature.active?(:be_nice)
-        # => true
-
-        Feature.with(:be_nice) do
-          puts "you can read this"
-        end
-
-        # see all features in Redis
-        Redis.current.hgetall("feature_toggles")
 
         # add/toggle features in Redis
         Redis.current.hset("feature_toggles", "ActiveFeature", true)
         Redis.current.hset("feature_toggles", "InActiveFeature", false)
 
-### Rails using YamlRepository
+### YamlRepository (features configured in static yml file)
 
         # File: Gemfile
         gem 'feature'
@@ -138,21 +131,13 @@ With this approach Feature is higly configurable and not bound to a specific kin
             an_active_feature: true
             an_inactive_feature: false
 
-        # File: config/initializers/feature.rb
+        # setup code (or Rails initializer: config/initializers/feature.rb)
         repo = Feature::Repository::YamlRepository.new("#{Rails.root}/config/feature.yml")
         Feature.set_repository repo
-
-        # File: app/views/example/index.html.erb
-        <% if Feature.active?(:an_active_feature) %>
-          <%# Feature implementation goes here %>
-        <% end %>
 
 You may also specify a Rails environment to use a new feature in development and test, but not production:
 
         # File: config/feature.yml
-        development:
-            features:
-                a_new_feature: true
         test:
             features:
                 a_new_feature: true
@@ -164,7 +149,7 @@ You may also specify a Rails environment to use a new feature in development and
         repo = Feature::Repository::YamlRepository.new("#{Rails.root}/config/feature.yml", Rails.env)
         Feature.set_repository repo
 
-### Rails using ActiveRecordRepository
+### ActiveRecordRepository (features configured in a database) using Rails
 
         # File: Gemfile
         gem 'feature'
@@ -181,8 +166,3 @@ You may also specify a Rails environment to use a new feature in development and
         # or in initializer
         # File: config/initializers/feature.rb
         repo.add_active_feature(:active_feature)
-
-        # File: app/views/example/index.html.erb
-        <% if Feature.active?(:an_active_feature) %>
-          <%# Feature implementation goes here %>
-        <% end %>
